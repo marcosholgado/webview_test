@@ -1,0 +1,20 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+  <!-- Application theme for dark theme. -->
+  <style name="Theme.Skeleton" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <!-- Primary brand color. -->
+    <item name="colorPrimary">@color/darkThemePrimary</item>
+    <item name="colorPrimaryDark">@color/darkThemePrimaryDark</item>
+    <item name="colorOnPrimary">@color/black</item>
+    <!-- Secondary brand color. -->
+    <item name="colorSecondary">@color/teal_200</item>
+    <item name="colorSecondaryVariant">@color/teal_200</item>
+    <item name="colorOnSecondary">@color/black</item>
+    <!-- Status bar color. -->
+    <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+    <!-- Customize your theme here. -->
+    <item name="toolbarIconColor">@color/white</item>
+    <item name="toolbarTextColor">@color/white</item>
+    <item name="toolbarBgColor">@color/darkThemePrimary</item>
+  </style>
+
+</resources>

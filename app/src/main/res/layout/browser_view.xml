@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".feature.browser.BrowserActivity"
+    >
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      android:padding="@dimen/ui__spacing_unit_1x"
+      >
+
+    <com.mancj.materialsearchbar.MaterialSearchBar
+        android:id="@+id/searchBar"
+        style="@style/MaterialSearchBarLight"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        app:mt_hint="@string/search_or_type_url"
+        app:mt_roundedSearchBarEnabled="true"
+        app:mt_maxSuggestionsCount="0"
+        app:mt_navIconEnabled="true"
+        app:mt_speechMode="false"
+        />
+
+    <ImageView
+        android:id="@+id/overflow_menu"
+        android:layout_width="@dimen/ui__spacing_unit_4x"
+        android:layout_height="@dimen/ui__spacing_unit_4x"
+        android:layout_gravity="center"
+        android:padding="4dp"
+        android:src="@drawable/ic_overflow_menu"
+        />
+  </LinearLayout>
+
+  <com.ddg.android.feature.browser.ui.BrowserWebView
+      android:id="@+id/webview"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      />
+
+</LinearLayout>

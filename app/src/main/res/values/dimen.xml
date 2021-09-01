@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <dimen name="ui__spacing_unit_0x">0dp</dimen>
+  <dimen name="ui__spacing_unit_0.5x">4dp</dimen>
+  <dimen name="ui__spacing_unit_1x">8dp</dimen>
+  <dimen name="ui__spacing_unit_1.5x">12dp</dimen>
+  <dimen name="ui__spacing_unit_2x">16dp</dimen>
+  <dimen name="ui__spacing_unit_2.5x">20dp</dimen>
+  <dimen name="ui__spacing_unit_3x">24dp</dimen>
+  <dimen name="ui__spacing_unit_3.5x">28dp</dimen>
+  <dimen name="ui__spacing_unit_4x">32dp</dimen>
+  <dimen name="ui__spacing_unit_4.5x">36dp</dimen>
+  <dimen name="ui__spacing_unit_5x">40dp</dimen>
+  <dimen name="ui__spacing_unit_6x">48dp</dimen>
+</resources>

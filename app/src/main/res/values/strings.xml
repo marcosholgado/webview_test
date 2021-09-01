@@ -1,0 +1,7 @@
+<resources>
+  <string name="app_name">ddg-skeleton</string>
+  <string name="search_or_type_url">Search or type URL</string>
+  <string name="refresh">Refresh</string>
+  <string name="back">Back</string>
+  <string name="forward">Forward</string>
+</resources>

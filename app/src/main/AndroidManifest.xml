@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.ddg.android">
+
+  <uses-permission android:name="android.permission.INTERNET" />
+
+  <application
+      android:name=".App"
+      android:allowBackup="true"
+      android:icon="@mipmap/ic_launcher"
+      android:label="@string/app_name"
+      android:networkSecurityConfig="@xml/network_security_config"
+      android:roundIcon="@mipmap/ic_launcher_round"
+      android:supportsRtl="true"
+      android:theme="@style/Theme.Skeleton">
+
+    <!-- Disable WorkManagerInitializer so that we can initialize it ourselves  -->
+    <provider
+        android:name="androidx.work.impl.WorkManagerInitializer"
+        android:authorities="${applicationId}.workmanager-init"
+        android:enabled="false"
+        android:exported="false"
+        tools:replace="android:authorities" />
+
+    <activity
+        android:name="com.ddg.android.feature.browser.BrowserActivity"
+        android:launchMode="singleTask">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+
+      <!--  Allow app to become default browser -->
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+
+        <category android:name="android.intent.category.BROWSABLE" />
+        <category android:name="android.intent.category.DEFAULT" />
+
+        <data android:scheme="https" />
+        <data android:scheme="http" />
+      </intent-filter>
+    </activity>
+  </application>
+
+</manifest>
