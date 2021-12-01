@@ -27,11 +27,11 @@ class TrackerDataSetDownloader @Inject constructor() {
 
   private fun updateTrackerList() {
     Timber.v("ddg: Downloading remote tracker block list")
-    // TODO
+    // TODO: implement
   }
 
   private fun schedulePeriodicSync() {
     Timber.v("ddg: Scheduling remote tracker block list updates")
-    // TODO
+    // TODO: implement
   }
 }

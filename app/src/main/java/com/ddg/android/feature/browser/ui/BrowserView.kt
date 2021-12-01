@@ -25,19 +25,16 @@ import android.widget.FrameLayout
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
-import com.ddg.android.feature.browser.model.BrowserAction
-import com.jakewharton.rxrelay2.PublishRelay
 import com.mancj.materialsearchbar.MaterialSearchBar
 import com.ddg.android.R
 import com.ddg.android.extension.hideKeyboard
 import com.ddg.android.feature.browser.BrowserWebViewClient
 import com.ddg.android.feature.browser.BrowserWebViewClientListener
 import com.ddg.android.feature.browser.model.*
-import io.reactivex.Observable
-import io.reactivex.ObservableTransformer
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
 import kotlinx.android.synthetic.main.browser_view.view.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import me.saket.cascade.CascadePopupMenu
 import timber.log.Timber
 
@@ -55,11 +52,7 @@ class BrowserView @JvmOverloads constructor(
   private val root: View by lazy {
     LayoutInflater.from(context).inflate(R.layout.browser_view, this, true)
   }
-  private val eventRelay: PublishRelay<BrowserViewEvent> = PublishRelay.create()
-
-  private var disposable: Disposable? = null
-
-  lateinit var presenter: ObservableTransformer<BrowserViewEvent, BrowserViewModel>
+  private val events = MutableSharedFlow<Browser.Event>()
 
   lateinit var browserWebViewClient: BrowserWebViewClient
 
@@ -75,11 +68,6 @@ class BrowserView @JvmOverloads constructor(
 
     configureWebView()
     configureOverflowMenu()
-
-    disposable = events()
-      .compose(presenter)
-      .observeOn(AndroidSchedulers.mainThread())
-      .subscribe(::render)
   }
 
   private fun configureOverflowMenu() {
@@ -88,9 +76,9 @@ class BrowserView @JvmOverloads constructor(
     popupMenu?.inflate(R.menu.browser_menu)
     popupMenu?.setOnMenuItemClickListener { item ->
       when (item.itemId) {
-        R.id.refresh -> eventRelay.accept(BrowserRefresh)
-        R.id.back -> eventRelay.accept(BrowserGoBack)
-        R.id.forward -> eventRelay.accept(BrowserGoForward)
+        R.id.refresh -> emitEvent(Browser.Event.BrowserRefresh)
+        R.id.back -> emitEvent(Browser.Event.BrowserGoBack)
+        R.id.forward -> emitEvent(Browser.Event.BrowserGoForward)
         else -> Timber.w("Unknown menu item")
       }
       true
@@ -100,12 +88,12 @@ class BrowserView @JvmOverloads constructor(
 
   private fun configureWebView() {
     browserWebViewClient.listener = object : BrowserWebViewClientListener {
-      override fun newPageStarted(browserNewPage: BrowserNewPage) {
-        eventRelay.accept(browserNewPage)
+      override fun newPageStarted(browserNewPage: Browser.Event.BrowserNewPage) {
+        emitEvent(browserNewPage)
       }
 
-      override fun pageFinished(browserNewPage: BrowserNewPage) {
-        eventRelay.accept(BrowserUpdateTitle(browserNewPage.title))
+      override fun pageFinished(browserNewPage: Browser.Event.BrowserNewPage) {
+        emitEvent(Browser.Event.BrowserUpdateTitle(browserNewPage.title))
       }
 
       override fun resourceBlocked(url: String, resource: String) {}
@@ -115,64 +103,58 @@ class BrowserView @JvmOverloads constructor(
       javaScriptEnabled = true
       databaseEnabled = true
     }
-  }
 
-  override fun onDetachedFromWindow() {
-    super.onDetachedFromWindow()
-    disposable?.dispose()
-  }
+    root.webview.webChromeClient = object : WebChromeClient() {
+      override fun onProgressChanged(view: WebView?, newProgress: Int) {
+        emitEvent(Browser.Event.BrowserLoadProgress(newProgress))
+      }
+    }
 
-  private fun events(): Observable<BrowserViewEvent> {
-    return Observable.merge(
-      eventRelay,
-      Observable.create { emitter ->
-        root.webview.webChromeClient = object : WebChromeClient() {
-          override fun onProgressChanged(view: WebView?, newProgress: Int) {
-            emitter.onNext(BrowserLoadProgress(newProgress))
-          }
+    root.searchBar.setOnSearchActionListener(
+      object : MaterialSearchBar.OnSearchActionListener {
+        override fun onButtonClicked(buttonCode: Int) {
         }
 
-        root.searchBar.setOnSearchActionListener(
-          object : MaterialSearchBar.OnSearchActionListener {
-            override fun onButtonClicked(buttonCode: Int) {
-            }
+        override fun onSearchStateChanged(enabled: Boolean) {
+        }
 
-            override fun onSearchStateChanged(enabled: Boolean) {
-            }
-
-            override fun onSearchConfirmed(text: CharSequence?) {
-              hideKeyboard()
-              emitter.onNext(BrowserQuerySearch(text?.toString().orEmpty()))
-            }
-          }
-        )
+        override fun onSearchConfirmed(text: CharSequence?) {
+          hideKeyboard()
+          emitEvent(Browser.Event.BrowserQuerySearch(text?.toString().orEmpty()))
+        }
       }
     )
   }
 
-  private fun render(model: BrowserViewModel) {
+  private fun emitEvent(event: Browser.Event) {
+    GlobalScope.launch { events.emit(event) }
+  }
+
+  fun events(): Flow<Browser.Event> = events.asSharedFlow()
+
+  fun render(model: Browser.State) {
     when {
-      model is LoadUrlViewModel && model.isEqualTo(root.webview.url) -> { /* noop */ }
-      model is LoadUrlViewModel && model.url != null -> {
+      model is Browser.State.LoadUrlViewModel && model.isEqualTo(root.webview.url) -> { /* noop */ }
+      model is Browser.State.LoadUrlViewModel && model.url != null -> {
         root.webview.loadUrl(model.url)
       }
-      model is NavigateBackViewModel && model.url != null -> root.webview.loadUrl(model.url)
-      model is NavigateBackViewModel && model.url == null -> listener?.onDetach()
-      model is NavigateForwardViewModel && model.url != null -> root.webview.loadUrl(model.url)
+      model is Browser.State.NavigateBackViewModel && model.url != null -> root.webview.loadUrl(model.url)
+      model is Browser.State.NavigateBackViewModel && model.url == null -> listener?.onDetach()
+      model is Browser.State.NavigateForwardViewModel && model.url != null -> root.webview.loadUrl(model.url)
     }
   }
 
   @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
   private fun refresh() {
-    action(BrowserAction.Refresh)
+    action(Browser.Action.Refresh)
   }
 
-  fun action(action: BrowserAction) {
+  fun action(action: Browser.Action) {
     when (action) {
-      BrowserAction.NavigateBack -> eventRelay.accept(BrowserGoBack)
-      BrowserAction.NavigateForward -> eventRelay.accept(BrowserGoForward)
-      BrowserAction.Refresh -> eventRelay.accept(BrowserViewInitEvent)
-      is BrowserAction.NewTab -> TODO()
+      Browser.Action.NavigateBack -> emitEvent(Browser.Event.BrowserGoBack)
+      Browser.Action.NavigateForward -> emitEvent(Browser.Event.BrowserGoForward)
+      Browser.Action.Refresh -> emitEvent(Browser.Event.BrowserViewInitEvent)
+      is Browser.Action.NewTab -> TODO()
     }
   }
 }

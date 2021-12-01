@@ -13,84 +13,68 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.ddg.android.feature.browser.db
-
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-import androidx.room.TypeConverter
-import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.Types
-import com.ddg.android.feature.browser.model.BrowserNewPage
-import com.ddg.android.network.NetworkModule
+package com.ddg.android.feature.browser.model
 
 data class Site(
   val url: String,
   val title: String
 )
 
-@Entity(tableName = "browser_tabs")
-data class BrowserTabsEntity(
-  @PrimaryKey val tabId: Int,
+data class BrowserTabModel(
   val currentIndex: Int,
   val site: List<Site>,
-  val base64Snapshot: String? = null
-)
+) {
 
-class SiteItemTypeConverter {
-  @TypeConverter
-  fun toSiteItem(json: String): List<Site> {
-    return Adapters.siteAdapter.fromJson(json)!!
-  }
-
-  @TypeConverter
-  fun fromSiteItem(item: List<Site>): String {
-    return Adapters.siteAdapter.toJson(item)
+  companion object {
+    fun create(url: String? = null, title: String? = null): BrowserTabModel {
+      return BrowserTabModel(0, listOf(Site(url = url ?: "about:blank", title = title ?: "blank")))
+    }
   }
 }
 
 // Extension functions
-fun BrowserTabsEntity.canGoBack(): Boolean {
-  return site.isNotEmpty() && currentIndex > 0
+fun BrowserTabModel.canGoBack(): Boolean {
+  return site.isNotEmpty() && currentIndex >= 0
 }
 
-fun BrowserTabsEntity.previousSiteItem(): Site? {
-  return if (canGoBack()) site[currentIndex - 1] else null
+fun BrowserTabModel.previousSiteItem(): Site? {
+  return if (canGoBack()) site[previousIndex()] else null
 }
 
-fun BrowserTabsEntity.previousIndex(): Int {
+fun BrowserTabModel.previousIndex(): Int {
   return (currentIndex - 1).coerceAtLeast(0)
 }
 
-fun BrowserTabsEntity.lastTabIsCurrent(): Boolean {
+fun BrowserTabModel.lastTabIsCurrent(): Boolean {
   return site.isNotEmpty() && site.size == (currentIndex - 1)
 }
 
-fun BrowserTabsEntity.canGoForward(): Boolean {
+fun BrowserTabModel.canGoForward(): Boolean {
   return site.isNotEmpty() && site.size > (currentIndex + 1)
 }
 
-fun BrowserTabsEntity.currentUrlItem(): Site {
+fun BrowserTabModel.currentUrlItem(): Site {
   site[currentIndex].let { return it }
 }
 
-fun BrowserTabsEntity.nextUrlItem(): Site? {
+fun BrowserTabModel.nextUrlItem(): Site? {
   return if (canGoForward()) {
     site[currentIndex + 1]
   } else null
 }
 
-fun BrowserTabsEntity.nextIndex(): Int {
+fun BrowserTabModel.nextIndex(): Int {
   return (currentIndex + 1).coerceAtMost(site.size - 1)
 }
 
-fun BrowserTabsEntity.currentTabSite(): Site? {
+fun BrowserTabModel.currentTabSite(): Site? {
   return when {
     currentIndex < site.size -> site[currentIndex]
     else -> null
   }
 }
 
-fun BrowserTabsEntity.updateTab(newPage: BrowserNewPage): BrowserTabsEntity {
+fun BrowserTabModel.updateTab(newPage: Browser.Event.BrowserNewPage): BrowserTabModel {
   val currentSiteItem = currentTabSite()
     ?: return this.copy(currentIndex = 0, site = listOf(Site(newPage.url, newPage.title)))
 
@@ -114,14 +98,5 @@ fun BrowserTabsEntity.updateTab(newPage: BrowserNewPage): BrowserTabsEntity {
       },
       currentIndex = currentIndex + 1
     )
-  }
-}
-
-// DB adapters
-class Adapters {
-  companion object {
-    private val moshi = NetworkModule().provideMoshi()
-    private val siteListType = Types.newParameterizedType(List::class.java, Site::class.java)
-    val siteAdapter: JsonAdapter<List<Site>> = moshi.adapter(siteListType)
   }
 }

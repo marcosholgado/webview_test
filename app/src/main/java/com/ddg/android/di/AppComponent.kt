@@ -22,10 +22,8 @@ import dagger.android.AndroidInjector
 import dagger.android.support.AndroidSupportInjectionModule
 import com.ddg.android.App
 import com.ddg.android.AppModule
-import com.ddg.android.db.DataBaseModule
 import com.ddg.android.feature.browser.di.BrowserComponentModule
 import com.ddg.android.feature.browser.di.BrowserModule
-import com.ddg.android.network.NetworkModule
 import javax.inject.Singleton
 
 @Singleton
@@ -35,8 +33,6 @@ import javax.inject.Singleton
     AppModule::class,
     BrowserModule::class,
     BrowserComponentModule::class,
-    DataBaseModule::class,
-    NetworkModule::class,
   ]
 )
 interface AppComponent : AndroidInjector<App> {

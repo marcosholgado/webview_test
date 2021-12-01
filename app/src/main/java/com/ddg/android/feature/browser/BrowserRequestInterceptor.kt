@@ -19,14 +19,6 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import androidx.annotation.WorkerThread
-import com.ddg.android.extension.baseHost
-import com.ddg.android.feature.browser.tracker.Tracker
-import com.ddg.android.feature.browser.tracker.TrackerBlocker
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
-import timber.log.Timber
-import kotlin.system.measureNanoTime
 
 interface BrowserRequestInterceptor {
   /**
@@ -48,33 +40,12 @@ interface BrowserRequestInterceptor {
 
 object BlockedWebResourceResponse : WebResourceResponse(null, null, null)
 
-internal class RealBrowserRequestInterceptor
-constructor(private val trackerBlocker: TrackerBlocker) : BrowserRequestInterceptor {
+internal class RealBrowserRequestInterceptor : BrowserRequestInterceptor {
   override fun intercept(webView: WebView, request: WebResourceRequest): WebResourceResponse? {
-    return runBlocking {
-      // all webview method calls shall be in the same thread
-      val documentUrl = withContext(Dispatchers.Main) { webView.url.orEmpty() }
 
-      // if request should be upgraded to HTTPS do it
-      val upgradedRequest = upgradeToHttps(request)
-      upgradedRequest?.let { return@runBlocking it }
+    // TODO: implement
 
-      // see if we need to block the resource
-      var hit: Tracker?
-      val time = measureNanoTime {
-        hit = trackerBlocker.shouldBlock(documentUrl, request.url?.baseHost.orEmpty())
-      }
-      if (hit != null) {
-        Timber.d("Blocked (${time.div(1000)} us): $hit")
-        return@runBlocking BlockedWebResourceResponse
-      }
-
-      return@runBlocking null
-    }
-  }
-
-  private fun upgradeToHttps(request: WebResourceRequest): WebResourceResponse? {
-    // TODO
     return null
   }
+
 }

@@ -20,13 +20,11 @@ import android.content.Context
 import com.ddg.android.di.DaggerAppComponent
 import com.ddg.android.di.scopes.ComponentHolder
 import com.ddg.android.feature.browser.tracker.TrackerDataSetDownloader
-import com.ddg.android.feature.browser.tracker.TrackerDataSetLoader
 import dagger.Binds
 import dagger.Module
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
 import dagger.android.HasAndroidInjector
-import org.jetbrains.anko.doAsync
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -36,9 +34,6 @@ open class App : HasAndroidInjector, Application() {
   lateinit var androidInjector: DispatchingAndroidInjector<Any>
 
   @Inject
-  lateinit var dataSetLoader: TrackerDataSetLoader
-
-  @Inject
   lateinit var dataSetDownloader: TrackerDataSetDownloader
 
   override fun onCreate() {
@@ -46,7 +41,6 @@ open class App : HasAndroidInjector, Application() {
 
     configureTimber()
     configureDependencyInjection()
-    invokeDataLoader()
     invokeDataDownloader()
 
     Timber.i("Creating application")
@@ -68,12 +62,6 @@ open class App : HasAndroidInjector, Application() {
 
   override fun androidInjector(): AndroidInjector<Any> {
     return androidInjector
-  }
-
-  private fun invokeDataLoader() {
-    doAsync {
-      dataSetLoader.loadData()
-    }
   }
 
   private fun invokeDataDownloader() {

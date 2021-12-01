@@ -17,19 +17,12 @@ package com.ddg.android.feature.browser.di
 
 import dagger.Module
 import dagger.Provides
-import com.ddg.android.db.AppDatabase
 import com.ddg.android.feature.browser.BrowserActivity
 import com.ddg.android.feature.browser.BrowserRequestInterceptor
 import com.ddg.android.feature.browser.RealBrowserRequestInterceptor
-import com.ddg.android.feature.browser.model.BrowserViewEvent
-import com.ddg.android.feature.browser.model.BrowserViewModel
-import com.ddg.android.feature.browser.tracker.RealTrackerBlocker
-import com.ddg.android.feature.browser.tracker.TrackerBlocker
-import com.ddg.android.feature.browser.ui.BrowserPresenter
 import com.ddg.android.feature.browser.ui.BrowserView
-import com.ddg.android.preferences.PreferenceProvider
+import com.ddg.android.feature.browser.ui.BrowserViewModelModelFactory
 import dagger.android.ContributesAndroidInjector
-import io.reactivex.ObservableTransformer
 import javax.inject.Singleton
 
 @Module
@@ -43,17 +36,13 @@ class BrowserModule {
 
   @Provides
   @Singleton
-  fun provideBrowserRequestInterceptor(trackerBlocker: TrackerBlocker): BrowserRequestInterceptor =
-    RealBrowserRequestInterceptor(trackerBlocker)
+  fun provideBrowserRequestInterceptor(): BrowserRequestInterceptor =
+    RealBrowserRequestInterceptor()
 
   @Provides
   @Singleton
-  fun provideBrowserPresenter(
-    appDatabase: AppDatabase,
-    preferenceProvider: PreferenceProvider,
-  ): ObservableTransformer<BrowserViewEvent, BrowserViewModel> {
-    val pref = preferenceProvider.currentTabIdPreference()
-    return BrowserPresenter(appDatabase.browserTabsDao(), pref)
+  fun provideBrowserViewModelModelFactory(): BrowserViewModelModelFactory {
+    return BrowserViewModelModelFactory()
   }
 
   @Provides
@@ -61,8 +50,4 @@ class BrowserModule {
   fun provideBrowserView(activity: BrowserActivity): BrowserView {
     return BrowserView(activity)
   }
-
-  @Provides
-  @Singleton
-  fun provideTrackerBlocker(): TrackerBlocker = RealTrackerBlocker()
 }

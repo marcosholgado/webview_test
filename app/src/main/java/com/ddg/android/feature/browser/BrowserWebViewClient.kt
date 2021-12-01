@@ -18,15 +18,15 @@ package com.ddg.android.feature.browser
 import android.graphics.Bitmap
 import android.webkit.*
 import com.ddg.android.extension.baseHost
-import com.ddg.android.feature.browser.model.BrowserNewPage
+import com.ddg.android.feature.browser.model.Browser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 interface BrowserWebViewClientListener {
-  fun newPageStarted(browserNewPage: BrowserNewPage)
-  fun pageFinished(browserNewPage: BrowserNewPage)
+  fun newPageStarted(browserNewPage: Browser.Event.BrowserNewPage)
+  fun pageFinished(browserNewPage: Browser.Event.BrowserNewPage)
   fun resourceBlocked(url: String, resource: String)
 }
 
@@ -51,7 +51,7 @@ class BrowserWebViewClient @Inject constructor(
 
   override fun onPageStarted(webView: WebView, url: String, favicon: Bitmap?) {
     listener?.newPageStarted(
-      BrowserNewPage(
+      Browser.Event.BrowserNewPage(
         webView.copyBackForwardList().currentItem?.url ?: url,
         webView.copyBackForwardList().currentItem?.title.orEmpty()
       )
@@ -61,7 +61,7 @@ class BrowserWebViewClient @Inject constructor(
 
   override fun onPageFinished(webView: WebView, url: String) {
     listener?.pageFinished(
-      BrowserNewPage(
+      Browser.Event.BrowserNewPage(
         webView.copyBackForwardList().currentItem?.url ?: url,
         webView.copyBackForwardList().currentItem?.title.orEmpty()
       )

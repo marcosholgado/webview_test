@@ -18,23 +18,27 @@ package com.ddg.android.feature.browser
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.ddg.android.R
 import com.ddg.android.extension.extraText
-import com.ddg.android.feature.browser.model.BrowserAction
-import com.ddg.android.feature.browser.model.BrowserViewEvent
-import com.ddg.android.feature.browser.model.BrowserViewModel
+import com.ddg.android.feature.browser.model.Browser
 import com.ddg.android.feature.browser.ui.*
 import dagger.android.AndroidInjection
-import io.reactivex.ObservableTransformer
-import io.reactivex.disposables.CompositeDisposable
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class BrowserActivity : AppCompatActivity(R.layout.activity_main) {
 
-  @Inject lateinit var presenter: ObservableTransformer<BrowserViewEvent, BrowserViewModel>
   @Inject lateinit var browserWebViewClient: BrowserWebViewClient
+  @Inject lateinit var viewModelFactory: BrowserViewModelModelFactory
+
+  private val viewModelModel: BrowserViewModel by lazy {
+    ViewModelProvider(this, viewModelFactory).get(BrowserViewModel::class.java)
+  }
   private lateinit var browserView: BrowserView
-  private var disposable = CompositeDisposable()
   private var startUpUrl: String? = null
 
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,7 +47,6 @@ class BrowserActivity : AppCompatActivity(R.layout.activity_main) {
     AndroidInjection.inject(this)
 
     browserView = findViewById(R.id.browser_view)
-    browserView.presenter = presenter
     browserView.browserWebViewClient = browserWebViewClient
     browserView.listener = object : BrowserViewListener {
       override fun onDetach() {
@@ -55,11 +58,21 @@ class BrowserActivity : AppCompatActivity(R.layout.activity_main) {
     startUpUrl = if (savedInstanceState == null) intent?.extraText else null
   }
 
+  override fun onStart() {
+    super.onStart()
+
+    lifecycleScope.launch {
+      browserView.events()
+        .flatMapLatest { viewModelModel.reduce(it) }
+        .collect(browserView::render)
+    }
+  }
+
   override fun onResume() {
     super.onResume()
 
     if (startUpUrl != null) {
-      browserView.action(BrowserAction.NewTab(startUpUrl))
+      browserView.action(Browser.Action.NewTab(startUpUrl))
       startUpUrl = null
     }
   }
@@ -68,17 +81,11 @@ class BrowserActivity : AppCompatActivity(R.layout.activity_main) {
     super.onNewIntent(intent)
 
     intent?.extraText?.let {
-      browserView.action(BrowserAction.NewTab(it))
+      browserView.action(Browser.Action.NewTab(it))
     }
   }
 
-  override fun onDestroy() {
-    // unsubscribe here as we need to subscribe when menu options are created
-    disposable.clear()
-    super.onDestroy()
-  }
-
   override fun onBackPressed() {
-    browserView.action(BrowserAction.NavigateBack)
+    browserView.action(Browser.Action.NavigateBack)
   }
 }
