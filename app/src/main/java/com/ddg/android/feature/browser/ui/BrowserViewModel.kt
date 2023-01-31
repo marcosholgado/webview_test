@@ -105,7 +105,7 @@ class BrowserViewModel : ViewModel() {
 
 @Suppress("UNCHECKED_CAST")
 class BrowserViewModelModelFactory : ViewModelProvider.NewInstanceFactory() {
-  override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+  override fun <T : ViewModel> create(modelClass: Class<T>): T {
     return with(modelClass) {
       when {
         isAssignableFrom(BrowserViewModel::class.java) -> BrowserViewModel()

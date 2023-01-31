@@ -9,13 +9,11 @@ apply plugin: 'kotlin-kapt'
 apply from: '../versioning.gradle'
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion "30.0.3"
-
     defaultConfig {
+        compileSdk 33
         applicationId "com.ddg.android"
-        minSdkVersion 21
-        targetSdkVersion 30
+        minSdkVersion 23
+        targetSdkVersion 33
         versionCode buildVersionCode()
         versionName buildVersionName()
 
@@ -75,27 +73,26 @@ spotless {
 }
 
 ext {
-    androidX = "1.2.0-beta01"
-    materialDesign = "1.1.0"
+    androidX = "1.5.1"
+    materialDesign = "1.7.0"
     coreTesting = "2.1.0"
 
-    dagger = "2.37"
+    dagger = "2.44.2"
     timber = "4.7.1"
-    lifecycle = "2.2.0"
+    lifecycle = "2.5.1"
 }
 
 dependencies {
     // Add core library desugaring to get access Java 8+ APIs
-    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:1.0.9"
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:1.1.5"
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4"
 
     implementation "androidx.appcompat:appcompat:$androidX"
-    implementation "androidx.core:core-ktx:1.6.0"
-    implementation "androidx.preference:preference-ktx:1.1.1"
-    implementation "androidx.lifecycle:lifecycle-runtime:$lifecycle"
-    implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle"
+    implementation "androidx.core:core-ktx:1.9.0"
+//    implementation "androidx.preference:preference-ktx:1.2.0"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle"
 
     implementation "com.google.android.material:material:$materialDesign"
 

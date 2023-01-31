@@ -15,7 +15,7 @@
       android:supportsRtl="true"
       android:theme="@style/Theme.Skeleton">
 
-    <activity
+    <activity android:exported="true"
         android:name="com.ddg.android.feature.browser.BrowserActivity"
         android:launchMode="singleTask">
       <intent-filter>

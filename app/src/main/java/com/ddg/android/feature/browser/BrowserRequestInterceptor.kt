@@ -19,6 +19,7 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import androidx.annotation.WorkerThread
+import timber.log.Timber
 
 interface BrowserRequestInterceptor {
   /**
@@ -43,7 +44,7 @@ object BlockedWebResourceResponse : WebResourceResponse(null, null, null)
 internal class RealBrowserRequestInterceptor : BrowserRequestInterceptor {
   override fun intercept(webView: WebView, request: WebResourceRequest): WebResourceResponse? {
 
-    // TODO: implement
+    Timber.d("Intercepted ${request.url}")
 
     return null
   }
